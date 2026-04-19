@@ -69,8 +69,8 @@ resource "aws_dlm_lifecycle_policy" "ebs_snapshot" {
     schedule {
       name = "Weekly"
       create_rule {
-        interval      = 1
-        interval_unit = "WEEKS"
+        interval      = 168
+        interval_unit = "HOURS"
         times         = ["03:00"]
       }
       retain_rule {
