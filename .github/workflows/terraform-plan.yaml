@@ -1,0 +1,48 @@
+name: gh-actions-terraform-plan
+
+on: 
+    pull_request: 
+        branches: 
+            - main
+    workflow_dispatch:
+
+permissions: 
+    id-token: write 
+    contents: read 
+    pull-requests: write
+
+jobs: 
+    plan: 
+        runs-on: ubuntu-latest 
+        steps: 
+            - name: checkout 
+              uses: actions/checkout@v4
+            - name: configure aws creds
+              uses: aws-actions/configure-aws-credentials@v4
+              with: 
+                role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                aws-region: ${{ secrets.AWS_REGION }}
+            - name: setup tf 
+              uses: hashicorp/setup-terraform@v3
+            - name: tf init
+              run: terraform init
+            - name: tf plan 
+              id: plan 
+              continue-on-error: true
+              run: | 
+                terraform plan -no-color 2>&1 | tee /tmp/plan.txt
+                echo "summary=$(grep -E '^Plan:|^No changes' /tmp/plan.txt | head -1)" >> $GITHUB_OUTPUT
+            - name: Post Plan Comment on PR
+              if: github.event_name == 'pull_request'
+              uses: actions/github-script@v7
+              with:
+                    script: |
+                        const summary = `${{ steps.plan.outputs.summary }}`;
+                        const runUrl = `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
+                        const body = `### Terraform Plan\n\n\`${summary}\`\n\n[View full plan output](${runUrl})`;
+                        github.rest.issues.createComment({
+                            issue_number: context.issue.number,
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            body: body
+                        });
