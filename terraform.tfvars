@@ -1,0 +1,6 @@
+aws_region          = "ap-south-2"
+project_name        = "pustaka-chakra"
+github_org          = "pustaka-chakra"
+github_iac_repo     = "IAC"
+github_backend_repo = "pustaka-chakra-backend"
+ami_id = "ami-027b5051d8d6e4de9"
