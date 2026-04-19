@@ -69,10 +69,9 @@ resource "aws_dlm_lifecycle_policy" "ebs_snapshot" {
     schedule {
       name = "Weekly"
       create_rule {
-        interval      = 168
-        interval_unit = "HOURS"
-        times         = ["03:00"]
+        cron_expression = "cron(0 3 ? * SUN *)"
       }
+
       retain_rule {
         count = 4
       }
